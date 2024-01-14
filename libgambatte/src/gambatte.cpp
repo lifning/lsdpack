@@ -217,6 +217,10 @@ void GB::setLcdHandler(void (*lcdHandler)()) {
 	p_->cpu.setLcdHandler(lcdHandler);
 }
 
+void GB::setTimaHandler(void (*timaHandler)()) {
+	p_->cpu.setTimaHandler(timaHandler);
+}
+
 bool GB::isSongEmpty() const {
     return p_->cpu.isSongEmpty();
 }

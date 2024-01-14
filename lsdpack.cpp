@@ -134,6 +134,17 @@ void on_lcd_interrupt() {
     }
 }
 
+// hack: LSDJ 9+ switched to timer interrupts rather than raster
+void on_tima_interrupt() {
+    static int count = 0;
+    if (sound_enabled) {
+        if (++count == 2) {
+            count = 0;
+            writer->record_lcd();
+        }
+    }
+}
+
 void make_out_path(const char* in_path, std::string suffix) {
     if (strlen(in_path) < strlen("a.gb")) {
         return;
@@ -269,6 +280,7 @@ int main(int argc, char* argv[]) {
     gameboy.setInputGetter(&input);
     gameboy.setWriteHandler(on_ff_write);
     gameboy.setLcdHandler(on_lcd_interrupt);
+    gameboy.setTimaHandler(on_tima_interrupt);
 
     if (dmg_mode) {
         flags |= gameboy.FORCE_DMG;
