@@ -307,13 +307,13 @@ LsdjTick::
     ld  a,[hl+]
     ldh [$3f],a
 
+    ld  a,$80 ; unmute
+    ldh [$1a],a
+
     ld  a,l
     ld  [SampleAddress],a
     ld  a,h
     ld  [SampleAddress+1],a
-
-    ld  a,$80 ; unmute
-    ldh [$1a],a
 
     pop     hl
 

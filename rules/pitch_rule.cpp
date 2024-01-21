@@ -22,7 +22,9 @@ PitchRule::PitchRule() :
     pu0_lsb_state(-1),
     pu0_msb_state(-1),
     pu1_lsb_state(-1),
-    pu1_msb_state(-1) {}
+    pu1_msb_state(-1),
+    wav_lsb_state(-1),
+    wav_msb_state(-1) {}
 
 void PitchRule::transform(std::deque<unsigned int>& bytes) {
     int cmd = 0;
@@ -45,6 +47,10 @@ void PitchRule::transform(std::deque<unsigned int>& bytes) {
         }
         pu1_lsb_state = new_lsb;
         pu1_msb_state = new_msb;
+    } else if (bytes[0] == (0x1d | FLAG_CMD) && bytes[2] == (0x1e | FLAG_CMD)) {
+        cmd = CMD_PITCH_WAV | FLAG_CMD;
+        wav_msb_state = new_msb;
+        wav_lsb_state = new_lsb;
     } else {
         return;
     }
