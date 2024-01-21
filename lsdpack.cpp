@@ -136,12 +136,12 @@ void on_lcd_interrupt() {
 
 // hack: LSDJ 9+ switched to timer interrupts rather than raster
 void on_tima_interrupt() {
-    static int count = 0;
+    //static int count = 0;
     if (sound_enabled) {
-        if (++count == 2) {
-            count = 0;
+        //if (++count == 1) {
+            //count = 0;
             writer->record_lcd();
-        }
+        //}
     }
 }
 
@@ -158,8 +158,7 @@ void make_out_path(const char* in_path, std::string suffix) {
     printf("Recording to '%s'\n", out_path.c_str());
 }
 
-void load_gb(const char* path, bool dmg_mode) {
-    unsigned flags = dmg_mode ? gameboy.FORCE_DMG : 0;
+void load_gb(const char* path, unsigned flags) {
     if (gameboy.load(path, flags)) {
         fprintf(stderr, "Loading %s failed\n", path);
         exit(1);
@@ -172,10 +171,9 @@ void load_gb(const char* path, bool dmg_mode) {
     press(0);
 }
 
-void record_gb(int argc, char* argv[], bool dmg_mode) {
+void record_gb(int argc, char* argv[], unsigned flags) {
     make_out_path(argv[optind], ".s");
     writer = new Writer(false);
-    unsigned flags = dmg_mode ? gameboy.FORCE_DMG : 0;
 
     for (; optind < argc; ++optind) {
         load_gb(argv[optind], flags);
@@ -192,8 +190,7 @@ void record_gb(int argc, char* argv[], bool dmg_mode) {
     delete writer;
 }
 
-void record_gbs(int argc, char* argv[], bool dmg_mode) {
-    unsigned flags = dmg_mode ? gameboy.FORCE_DMG : 0;
+void record_gbs(int argc, char* argv[], unsigned flags) {
     for (; optind < argc; ++optind) {
         load_gb(argv[optind], flags);
 
@@ -216,9 +213,8 @@ void record_gbs(int argc, char* argv[], bool dmg_mode) {
     }
 }
 
-void record_dump(int argc, char* argv[], bool dmg_mode) {
+void record_dump(int argc, char* argv[], unsigned flags) {
     writer = new DumpWriter();
-    unsigned flags = dmg_mode ? gameboy.FORCE_DMG : 0;
 
     for (; optind < argc; ++optind) {
         load_gb(argv[optind], flags);
@@ -251,6 +247,7 @@ int main(int argc, char* argv[]) {
     bool gbs_mode = false;
     bool dump_mode = false;
     bool dmg_mode = false;
+    bool agb_mode = false;
     unsigned flags = 0;
 
     int c;
@@ -268,6 +265,10 @@ int main(int argc, char* argv[]) {
                 puts("recording using emulated DMG");
                 dmg_mode = true;
                 break;
+            case 'a':
+                puts("recording using emulated CGB reporting as AGB");
+                agb_mode = true;
+                break;
             default:
                 print_help_and_exit();
         }
@@ -284,6 +285,13 @@ int main(int argc, char* argv[]) {
 
     if (dmg_mode) {
         flags |= gameboy.FORCE_DMG;
+    }
+    if (agb_mode) {
+        flags |= gameboy.GBA_CGB;
+    }
+    if (dmg_mode && agb_mode) {
+        puts("can't be both DMG and AGB/CGB!");
+        return 1;
     }
     if (gbs_mode) {
         record_gbs(argc, argv, flags);
